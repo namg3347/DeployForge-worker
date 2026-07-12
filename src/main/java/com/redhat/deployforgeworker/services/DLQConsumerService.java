@@ -1,5 +1,6 @@
 package com.redhat.deployforgeworker.services;
 
+import com.redhat.deployforgeworker.enums.DeploymentStatus;
 import com.redhat.deployforgeworker.models.Deployment;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -9,21 +10,18 @@ import org.springframework.stereotype.Service;
 @Service
 @Slf4j
 @RequiredArgsConstructor
-public class RabbitMqConsumerService {
+public class DLQConsumerService {
 
     private final DeploymentService deploymentService;
-    private final WorkerService workerService;
 
-    //@RabbitListener(queues = "deploy_forge_queue")
+    //@RabbitListener(queues = "dead_letter_queue")
     public void consumeMessage(String message) {
-        log.info("found message:{}",message);
+        log.info("found message in dead letter queue:{}",message);
         Long id = Long.parseLong(message.split(":")[1]);
         Deployment deployment = deploymentService.findDeploymentById(id);
         log.info("found deployment:{}",deployment);
-        workerService.run(deployment);
-
-        log.info("deployment successfully completed");
+        deploymentService.updateDeploymentStatus(deployment, DeploymentStatus.FAILED);
+        log.info("deployment failed completely");
 
     }
-
 }

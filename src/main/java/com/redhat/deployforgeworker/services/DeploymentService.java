@@ -7,5 +7,11 @@ public interface DeploymentService {
 
     Deployment findDeploymentById(Long id);
 
+    void setStartedAt(Deployment deployment);
+
+    void setDeployedAt(Deployment deployment);
+
     void updateDeploymentStatus(Deployment deployment, DeploymentStatus deploymentStatus);
+
+    void setErrorMessage(Deployment deployment, String errorMessage);
 }

@@ -4,7 +4,6 @@ import com.redhat.deployforgeworker.enums.DeploymentStatus;
 import com.redhat.deployforgeworker.exceptions.DeploymentNotFoundException;
 import com.redhat.deployforgeworker.models.Deployment;
 import com.redhat.deployforgeworker.repositories.DeploymentRepo;
-import lombok.Data;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -31,7 +30,28 @@ public class DeploymentServiceImpl implements DeploymentService {
 
     @Override
     public void updateDeploymentStatus(Deployment deployment, DeploymentStatus deploymentStatus) {
+        log.info("updating deployment status of deployment with id:{} to {}"
+                ,deployment.getDeploymentId(),deploymentStatus);
         deployment.setDeploymentStatus(deploymentStatus);
         deploymentRepo.save(deployment);
     }
+
+    @Override
+    public void setErrorMessage(Deployment deployment, String errorMessage) {
+        deployment.setErrorMessage(errorMessage);
+        deploymentRepo.save(deployment);
+    }
+
+    @Override
+    public void setStartedAt(Deployment deployment) {
+        deployment.setStartedAt(Instant.now());
+        deploymentRepo.save(deployment);
+    }
+
+    @Override
+    public void setDeployedAt(Deployment deployment) {
+        deployment.setDeployedAt(Instant.now());
+        deploymentRepo.save(deployment);
+    }
+
 }
