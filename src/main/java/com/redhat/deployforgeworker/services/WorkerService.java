@@ -15,7 +15,6 @@ public class WorkerService {
     private final DeploymentService deploymentService;
     private final ProcessBuilderService processBuilderService;
 
-    @Transactional
     public void run(Deployment deployment) {
 
         try {

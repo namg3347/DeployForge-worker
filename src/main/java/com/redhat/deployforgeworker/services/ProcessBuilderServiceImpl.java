@@ -49,6 +49,7 @@ public class ProcessBuilderServiceImpl implements ProcessBuilderService {
         ProcessBuilder processBuilder = new  ProcessBuilder();
         List<String> command = getDockerCommand(deployment);
         try {
+            log.info("builder reached try block");
             processBuilder.command(command);
             //redirects error stream to output stream
             processBuilder.redirectErrorStream(true);
@@ -58,16 +59,17 @@ public class ProcessBuilderServiceImpl implements ProcessBuilderService {
             processBuilder.inheritIO();
 
             Process process = processBuilder.start();
+            log.info("builder process started");
 
             // for prod --------------
             //save logs to db
             //saveLogs(process);
-
+            log.info("waiting for builder container to finish");
             int exitCode = process.waitFor();
             if(exitCode!=0){
+                log.info("Docker process exited with code:{} ", exitCode);
                 throw  new BuilderContainerException("Error while running builder container");
             }
-            log.info("Docker process exited with code:{} ", exitCode);
 
         } catch ( IOException | InterruptedException e ) {
             throw new BuilderContainerException("failed to run docker container, error:"+e.getMessage());
@@ -95,7 +97,7 @@ public class ProcessBuilderServiceImpl implements ProcessBuilderService {
                             log.error("failed to delete item,{} : {}",p,e.getMessage());
                         }
                     });
-            log.info("Successfully deleted temporary directory for deployment: {}", deploymentId);
+            log.info("Successfully deleted temporary directory: {}",path.toAbsolutePath());
         } catch (IOException e) {
             log.error("Failed to read directory tree for deployment {}: {}", deploymentId, e.getMessage());
             throw new TempDirException("Error while deleting temporary directory");
