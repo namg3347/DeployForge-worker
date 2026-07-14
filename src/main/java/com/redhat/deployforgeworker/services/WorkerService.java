@@ -2,7 +2,6 @@ package com.redhat.deployforgeworker.services;
 
 import com.redhat.deployforgeworker.enums.DeploymentStatus;
 import com.redhat.deployforgeworker.models.Deployment;
-import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -15,19 +14,17 @@ public class WorkerService {
     private final DeploymentService deploymentService;
     private final ProcessBuilderService processBuilderService;
 
-    public void run(Deployment deployment) {
+    public void run(Long deploymentId) {
 
         try {
 
             //BUILDING-----------------
             log.info("started building deployment:");
-            //update deployment status to Building
-            deploymentService.updateDeploymentStatus(deployment, DeploymentStatus.BUILDING);
-            //set started at instant
-            deploymentService.setStartedAt(deployment);
+            //mark deployment as Building
+            deploymentService.markBuilding(deploymentId);
 
             //creates temporary dir
-            processBuilderService.createTemporaryDirectory(deployment.getDeploymentId());
+            processBuilderService.createTemporaryDirectory(deploymentId);
 
             //runs a container for our container
             processBuilderService.runBuilderContainer(deployment);
@@ -38,23 +35,23 @@ public class WorkerService {
             //UPLOADING-----------------
 
             log.info("started uploading deployment");
-            deploymentService.updateDeploymentStatus(deployment,DeploymentStatus.UPLOADING);
+            //mark deployment as uploading
+            deploymentService.markUploading(deploymentId);
 
             //Call to upload service
 
             log.info("finished uploading deployment");
 
-
-            deploymentService.setDeployedAt(deployment);
-            deploymentService.updateDeploymentStatus(deployment,DeploymentStatus.SUCCESS);
+            //mark deployment as successful
+            deploymentService.markSuccess(deploymentId);
 
             log.info("deployment SUCCESSFUL!");
         } catch (Exception e) {
             log.error("deployment failed", e);
-            deploymentService.setErrorMessage(deployment, e.getMessage());
+            deploymentService.setErrorMessage(deploymentId, e.getMessage());
         } finally {
             //deletes temporary dir
-            processBuilderService.deleteTemporaryDirectory(deployment.getDeploymentId());
+            processBuilderService.deleteTemporaryDirectory(deploymentId);
         }
 
 

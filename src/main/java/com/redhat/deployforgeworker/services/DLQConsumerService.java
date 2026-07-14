@@ -18,9 +18,8 @@ public class DLQConsumerService {
     public void consumeMessage(String message) {
         log.info("found message in dead letter queue:{}",message);
         Long id = Long.parseLong(message.split(":")[1]);
-        Deployment deployment = deploymentService.findDeploymentById(id);
-        log.info("found deployment:{}",deployment);
-        deploymentService.updateDeploymentStatus(deployment, DeploymentStatus.FAILED);
+        log.info("found deployment with id:{}",id);
+        deploymentService.markFailure(id);
         log.info("deployment failed completely");
 
     }

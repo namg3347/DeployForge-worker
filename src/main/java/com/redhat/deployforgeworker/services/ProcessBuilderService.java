@@ -1,12 +1,11 @@
 package com.redhat.deployforgeworker.services;
 
-import com.redhat.deployforgeworker.models.Deployment;
 
 public interface ProcessBuilderService {
 
-    void createTemporaryDirectory(Long deploymentID);
+    void createTemporaryDirectory(Long deploymentId);
 
-    void runBuilderContainer(Deployment deployment);
+    void runBuilderContainer(Long deploymentId);
 
-    void deleteTemporaryDirectory(Long deploymentID);
+    void deleteTemporaryDirectory(Long deploymentId);
 }

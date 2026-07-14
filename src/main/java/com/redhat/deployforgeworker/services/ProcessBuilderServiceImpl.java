@@ -24,6 +24,8 @@ import java.util.stream.Stream;
 @Slf4j
 public class ProcessBuilderServiceImpl implements ProcessBuilderService {
 
+    private final DeploymentService deploymentService;
+
     @Override
     public void createTemporaryDirectory(Long deploymentId) {
         try {
@@ -44,10 +46,10 @@ public class ProcessBuilderServiceImpl implements ProcessBuilderService {
     }
 
     @Override
-    public void runBuilderContainer(Deployment deployment) {
-        log.info("Running builder container for deployment with id:{}", deployment.getDeploymentId());
+    public void runBuilderContainer(Long deploymentId) {
+        log.info("Running builder container for deployment with id:{}", deploymentId);
         ProcessBuilder processBuilder = new  ProcessBuilder();
-        List<String> command = getDockerCommand(deployment);
+        List<String> command = getDockerCommand(deploymentService.findDeploymentById(deploymentId));
         try {
             log.info("builder reached try block");
             processBuilder.command(command);

@@ -20,7 +20,7 @@ public class RabbitMqConsumerService {
         Long id = Long.parseLong(message.split(":")[1]);
         Deployment deployment = deploymentService.findDeploymentById(id);
         log.info("found deployment:{}",deployment);
-        workerService.run(deployment);
+        workerService.run(deployment.getDeploymentId());
 
         log.info("deployment successfully completed");
 

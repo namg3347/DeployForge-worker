@@ -1,17 +1,19 @@
 package com.redhat.deployforgeworker.services;
 
-import com.redhat.deployforgeworker.enums.DeploymentStatus;
 import com.redhat.deployforgeworker.models.Deployment;
 
 public interface DeploymentService {
 
     Deployment findDeploymentById(Long id);
 
-    void setStartedAt(Deployment deployment);
+    void markBuilding(Long deploymentId);
 
-    void setDeployedAt(Deployment deployment);
+    void markUploading(Long deploymentId);
 
-    void updateDeploymentStatus(Deployment deployment, DeploymentStatus deploymentStatus);
+    void markSuccess(Long deploymentId);
 
-    void setErrorMessage(Deployment deployment, String errorMessage);
+    void markFailure(Long deploymentId);
+
+
+    void setErrorMessage(Long deploymentID, String errorMessage);
 }
