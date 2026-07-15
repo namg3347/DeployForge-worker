@@ -19,7 +19,7 @@ public class TestController {
     @GetMapping("/{id}")
      public String test(@PathVariable Long id) {
         Deployment deployment = deploymentService.findDeploymentById(id);
-        workerService.run(deployment);
+        workerService.run(deployment.getDeploymentId());
 
         return "success";
     }

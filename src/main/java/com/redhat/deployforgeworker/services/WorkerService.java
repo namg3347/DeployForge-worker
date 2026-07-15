@@ -1,7 +1,5 @@
 package com.redhat.deployforgeworker.services;
 
-import com.redhat.deployforgeworker.enums.DeploymentStatus;
-import com.redhat.deployforgeworker.models.Deployment;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -27,7 +25,7 @@ public class WorkerService {
             processBuilderService.createTemporaryDirectory(deploymentId);
 
             //runs a container for our container
-            processBuilderService.runBuilderContainer(deployment);
+            processBuilderService.runBuilderContainer(deploymentId);
 
             log.info("finished building deployment");
 

@@ -17,6 +17,7 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Stream;
 
 @Service
@@ -76,15 +77,13 @@ public class ProcessBuilderServiceImpl implements ProcessBuilderService {
         } catch ( IOException | InterruptedException e ) {
             throw new BuilderContainerException("failed to run docker container, error:"+e.getMessage());
 
-        } catch ( LoggingException e ) {
-            throw new LoggingException(e.getMessage());
         }
     }
 
     @Override
     public void deleteTemporaryDirectory(Long deploymentId) {
         Path path = Paths.get(System.getProperty("java.io.tmpdir"),"build-" +deploymentId);
-
+        AtomicBoolean failed = new AtomicBoolean(false);
         log.info("Deleting temporary directory for deployment with id:{}", deploymentId);
         if(!Files.exists(path)){
             log.warn("Temporary Directory does not exist...skipping deletion");
@@ -96,9 +95,13 @@ public class ProcessBuilderServiceImpl implements ProcessBuilderService {
                         try {
                             Files.delete(p);
                         } catch (IOException e) {
+                            failed.set(true);
                             log.error("failed to delete item,{} : {}",p,e.getMessage());
                         }
                     });
+            if(failed.get()){
+                throw new TempDirException("Failed to delete some files inside temporary directory");
+            }
             log.info("Successfully deleted temporary directory: {}",path.toAbsolutePath());
         } catch (IOException e) {
             log.error("Failed to read directory tree for deployment {}: {}", deploymentId, e.getMessage());

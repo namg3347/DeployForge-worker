@@ -14,7 +14,7 @@ public class RabbitMqConsumerService {
     private final DeploymentService deploymentService;
     private final WorkerService workerService;
 
-    //@RabbitListener(queues = "deploy_forge_queue")
+    @RabbitListener(queues = "deploy_forge_queue")
     public void consumeMessage(String message) {
         log.info("found message:{}",message);
         Long id = Long.parseLong(message.split(":")[1]);
@@ -23,6 +23,16 @@ public class RabbitMqConsumerService {
         workerService.run(deployment.getDeploymentId());
 
         log.info("deployment successfully completed");
+
+    }
+
+    @RabbitListener(queues = "dead_letter_queue")
+    public void consumeFailedMessage(String message) {
+        log.info("found message in dead letter queue:{}",message);
+        Long id = Long.parseLong(message.split(":")[1]);
+        log.info("found deployment with id:{}",id);
+        deploymentService.markFailure(id);
+        log.info("deployment failed completely");
 
     }
 
