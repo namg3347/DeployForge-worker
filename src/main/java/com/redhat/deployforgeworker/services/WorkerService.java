@@ -1,5 +1,6 @@
 package com.redhat.deployforgeworker.services;
 
+import com.redhat.deployforgeworker.models.Deployment;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -11,6 +12,7 @@ public class WorkerService {
 
     private final DeploymentService deploymentService;
     private final ProcessBuilderService processBuilderService;
+    private final S3Service s3Service;
 
     public void run(Long deploymentId) {
 
@@ -25,7 +27,7 @@ public class WorkerService {
             processBuilderService.createTemporaryDirectory(deploymentId);
 
             //runs a container for our container
-            processBuilderService.runBuilderContainer(deploymentId);
+            Deployment deployment = processBuilderService.runBuilderContainer(deploymentId);
 
             log.info("finished building deployment");
 
@@ -37,6 +39,7 @@ public class WorkerService {
             deploymentService.markUploading(deploymentId);
 
             //Call to upload service
+            s3Service.uploadOutputDirectory(deployment);
 
             log.info("finished uploading deployment");
 

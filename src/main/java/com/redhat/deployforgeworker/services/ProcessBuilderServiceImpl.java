@@ -47,10 +47,11 @@ public class ProcessBuilderServiceImpl implements ProcessBuilderService {
     }
 
     @Override
-    public void runBuilderContainer(Long deploymentId) {
+    public Deployment runBuilderContainer(Long deploymentId) {
         log.info("Running builder container for deployment with id:{}", deploymentId);
         ProcessBuilder processBuilder = new  ProcessBuilder();
-        List<String> command = getDockerCommand(deploymentService.findDeploymentById(deploymentId));
+        Deployment deployment =deploymentService.findDeploymentById(deploymentId);
+        List<String> command = getDockerCommand(deployment);
         try {
             log.info("builder reached try block");
             processBuilder.command(command);
@@ -73,6 +74,8 @@ public class ProcessBuilderServiceImpl implements ProcessBuilderService {
                 log.info("Docker process exited with code:{} ", exitCode);
                 throw  new BuilderContainerException("Error while running builder container");
             }
+
+            return deployment;
 
         } catch ( IOException | InterruptedException e ) {
             throw new BuilderContainerException("failed to run docker container, error:"+e.getMessage());

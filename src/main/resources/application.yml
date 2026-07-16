@@ -23,3 +23,7 @@ spring:
           multiplier: 2
           max-retries: 3
         default-requeue-rejected: false
+aws:
+  s3:
+    region: ${AWS_S3_REGION}
+    bucker-name: ${AWS_S3_BUCKET_NAME}
