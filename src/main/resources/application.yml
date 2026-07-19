@@ -26,4 +26,5 @@ spring:
 aws:
   s3:
     region: ${AWS_S3_REGION}
-    bucker-name: ${AWS_S3_BUCKET_NAME}
+    bucket-name: ${AWS_S3_BUCKET_NAME}
+

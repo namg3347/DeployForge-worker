@@ -1,5 +1,6 @@
 package com.redhat.deployforgeworker.services;
 
+import com.redhat.deployforgeworker.enums.DeploymentsLogsLevel;
 import com.redhat.deployforgeworker.exceptions.BuilderContainerException;
 import com.redhat.deployforgeworker.exceptions.LoggingException;
 import com.redhat.deployforgeworker.exceptions.TempDirException;
@@ -26,6 +27,8 @@ import java.util.stream.Stream;
 public class ProcessBuilderServiceImpl implements ProcessBuilderService {
 
     private final DeploymentService deploymentService;
+    private final DeploymentsLogsService deploymentsLogsService;
+
 
     @Override
     public void createTemporaryDirectory(Long deploymentId) {
@@ -60,14 +63,15 @@ public class ProcessBuilderServiceImpl implements ProcessBuilderService {
             // inherits IO to print logs directly to console
 
             // for dev --------------
-            processBuilder.inheritIO();
+//          processBuilder.inheritIO();
 
             Process process = processBuilder.start();
             log.info("builder process started");
 
             // for prod --------------
             //save logs to db
-            //saveLogs(process);
+            saveLogs(process,deployment.getDeploymentId());
+
             log.info("waiting for builder container to finish");
             int exitCode = process.waitFor();
             if(exitCode!=0){
@@ -134,20 +138,43 @@ public class ProcessBuilderServiceImpl implements ProcessBuilderService {
         return command;
     }
 
-    private static void saveLogs(Process process) throws LoggingException {
-        try {
-            BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
-            String line;
+    private void saveLogs(Process process, Long deploymentId) throws LoggingException {
+        try (BufferedReader reader =
+                     new BufferedReader(new InputStreamReader(process.getInputStream()))) {
 
-            while((line = reader.readLine())!= null) {
+            String line;
+            long sequence = 1;
+
+            while ((line = reader.readLine()) != null) {
+
                 log.info(line);
 
-                //save to db------
+                DeploymentsLogsLevel level;
+                String message;
 
+                if (line.startsWith("[INFO]")) {
+                    level = DeploymentsLogsLevel.INFO;
+                    message = line.replaceFirst("\\[INFO]\\s*", "");
+
+                } else if (line.startsWith("[ERROR]")) {
+                    level = DeploymentsLogsLevel.ERROR;
+                    message = line.replaceFirst("\\[ERROR]\\s*", "");
+
+                } else {
+                    level = DeploymentsLogsLevel.RAW;
+                    message = line;
+                }
+
+                deploymentsLogsService.saveLogs(
+                        deploymentId,
+                        message,
+                        sequence++,
+                        level
+                );
             }
 
         } catch (IOException e) {
-            throw new LoggingException("Error while saving logs to builder container");
+            throw new LoggingException("Error while saving builder logs.");
         }
     }
 

@@ -26,28 +26,30 @@ public class S3Service {
     private final S3Client s3Client;
     private final S3Properties s3Properties;
 
-    public void uploadOutputDirectory(Deployment deployment) throws IOException {
+    public void uploadOutputDirectory(Deployment deployment)  {
         // Source path: temp/build-{id}/dist
-        Path distDirectory = Paths.get(
+        Path dir = Paths.get(
                 System.getProperty("java.io.tmpdir"),
                 "build-" + deployment.getDeploymentId(),
                 deployment.getOutputDirectory()
         );
 
-        if (!Files.exists(distDirectory) || !Files.isDirectory(distDirectory)) {
-            throw new S3UploadFailedException("The target " +
-                    deployment.getOutputDirectory()+ " directory does not exist: " + distDirectory);
+        if (!Files.exists(dir) || !Files.isDirectory(dir)) {
+            throw new S3UploadFailedException("directory does not exist: " + dir);
         }
 
-        try (Stream<Path> paths = Files.walk(distDirectory)) {
+        try (Stream<Path> paths = Files.walk(dir)) {
             paths.filter(Files::isRegularFile)
-                    .forEach(filePath -> uploadToS3(distDirectory, deployment.getDeploymentSlug(), filePath));
+                    .forEach(filePath -> uploadToS3(dir, deployment.getDeploymentSlug(), filePath));
+        }
+        catch (IOException e) {
+            throw new S3UploadFailedException("couldn't access the directory: "+dir);
         }
     }
 
-    private void uploadToS3(Path distDirectory, String deploymentSlug, Path filePath) {
+    private void uploadToS3(Path dir, String deploymentSlug, Path filePath){
         try {
-            String relativePath = distDirectory
+            String relativePath = dir
                     .relativize(filePath)
                     .toString()
                     .replace('\\', '/');
@@ -72,9 +74,8 @@ public class S3Service {
             log.info("Upload size {} ({})", s3Key, size);
 
         } catch (S3Exception | SdkClientException | IOException e) {
-            throw new S3UploadFailedException(
-                    "Failed to upload file '" + filePath.getFileName() + "' to S3: " + e.getMessage()
-            );
+            log.info("Upload Failed:{}", e.getMessage());
+            throw new S3UploadFailedException("Failed to upload file to s3");
         }
     }
 

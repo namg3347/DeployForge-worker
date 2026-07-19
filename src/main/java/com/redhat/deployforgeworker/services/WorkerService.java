@@ -1,5 +1,6 @@
 package com.redhat.deployforgeworker.services;
 
+import com.redhat.deployforgeworker.exceptions.DomainException;
 import com.redhat.deployforgeworker.models.Deployment;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -47,12 +48,16 @@ public class WorkerService {
             deploymentService.markSuccess(deploymentId);
 
             log.info("deployment SUCCESSFUL!");
-        } catch (Exception e) {
-            log.error("deployment failed", e);
+        } catch (DomainException e) {
+            log.error("deployment failed:{} with code:{}", e.getMessage(),e.getStatusCode());
             deploymentService.setErrorMessage(deploymentId, e.getMessage());
         } finally {
             //deletes temporary dir
-            processBuilderService.deleteTemporaryDirectory(deploymentId);
+            try {
+                processBuilderService.deleteTemporaryDirectory(deploymentId);
+            } catch (Exception e) {
+                log.error("cleanup failed : {}", e.getMessage());
+            }
         }
 
 
