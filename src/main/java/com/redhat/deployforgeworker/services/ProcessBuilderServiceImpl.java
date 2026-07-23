@@ -63,7 +63,7 @@ public class ProcessBuilderServiceImpl implements ProcessBuilderService {
             // inherits IO to print logs directly to console
 
             // for dev --------------
-//          processBuilder.inheritIO();
+            //processBuilder.inheritIO();
 
             Process process = processBuilder.start();
             log.info("builder process started");
